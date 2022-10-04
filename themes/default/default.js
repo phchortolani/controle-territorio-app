@@ -3,7 +3,11 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#202124',
+        backgroundColor: '#44464C' /* '#202124' */,
+        borderBottomWidth: 10,
+        borderTopWidth: 10,
+        borderColor: '#202124',
+        borderStyle: "solid",
     },
     colors: {
         white: {
@@ -11,41 +15,48 @@ export const styles = StyleSheet.create({
         }
     },
     ListText: {
-        color: "#fff",
-        fontSize: 15,
-
-
+        fontSize: 20,
     },
     fixToText: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        backgroundColor: '#44464C',
-        padding: 30
+        justifyContent: 'space-between',
+        backgroundColor: '#202124',
+        padding: 15,
+        borderTopWidth: 10,
+        borderColor: '#5b3e84',
+        borderStyle: "solid",
     },
     top: {
-        backgroundColor: '#44464C',
+        backgroundColor: '#202124',
         padding: 30,
         paddingBottom: 0,
-        paddingStart: 20
+        paddingStart: 20,
+        borderBottomWidth: 10,
+        borderColor: '#5b3e84',
+        borderStyle: "solid",
     },
     h1: {
         fontSize: 40,
         color: "#fff",
+        paddingTop: 5,
         paddingBottom: 10
     },
     h2: {
         fontSize: 30,
         color: "#fff",
+        paddingTop: 5,
         paddingBottom: 10
     },
     h3: {
         fontSize: 20,
         color: "#fff",
+        paddingTop: 5,
         paddingBottom: 10
     },
     h4: {
         fontSize: 10,
         color: "#fff",
+        paddingTop: 5,
         paddingBottom: 10
     },
     containerList: {
@@ -53,7 +64,6 @@ export const styles = StyleSheet.create({
         width: 250,
         height: 250,
         borderColor: '#fff',
-        boxShadow: "10px 10px 17px -12px rgba(0,0,0,0.75)"
     }
 
 });
