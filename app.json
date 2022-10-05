@@ -24,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#202124"
-      }
+      },
+      "package": "com.controle"
     },
     "web": {
       "favicon": "./assets/favicon.png"
