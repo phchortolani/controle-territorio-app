@@ -1,47 +1,61 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Button, FlatList, Text, View, TouchableOpacity } from 'react-native';
+import { FlatList, Text, View, TouchableNativeFeedback } from 'react-native';
 import { styles } from './themes/default/default';
-import { Card, Title, Paragraph, shadow } from 'react-native-paper';
+import { Card, Paragraph } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
 import IconMaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment/moment';
 
 let menuSelect = "Todos"
-
+let tempList = []
+const bottomMenuOpacity = 0.4
 export default function App() {
   const [list, setList] = useState()
 
-
   async function fetchData(status) {
-    fetch('https://controle-territorio.herokuapp.com/', {
-      method: 'GET',
-      headers: {
-        'Content-type': 'application/json; charset=UTF-8',
-      },
-    }).then((response) => response.json()).then((obj) => {
-      let ret = obj.filter((e) => e.Status != "DESATIVADO");
-
-      if (status) {
-        ret = obj.filter(e => e.Status == status)
+    if (tempList.length == 0) {
+      await fetch('https://controle-territorio.herokuapp.com/', {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        },
+      }).then((response) => response.json()).then((obj) => {
+        tempList = obj.filter((e) => e.Status != "DESATIVADO");
       }
-
-      switch (status) {
-        case "ABERTO":
-          menuSelect = "Abertos"
-          break;
-        case "OK":
-          menuSelect = "Entregues"
-          break;
-        default:
-          menuSelect = "Todos"
-      }
-
-      setList(ret)
-
+      );
     }
-    );
+    switch (status) {
+      case "ABERTO":
+        menuSelect = "Abertos"
+        break;
+      case "OK":
+        menuSelect = "Entregues"
+        break;
+      case "Historico":
+        menuSelect = "Historico"
+        status = undefined;
+        break;
+      default:
+        menuSelect = "Todos"
+    }
+    let ret = tempList;
+    if (menuSelect != "Historico") {
+      let rodadasList = []
+      tempList.forEach((e) => {
+        const index = rodadasList.findIndex((x) => x?.Territorio == e.Territorio);
+        if (index > -1) {
+          rodadasList.splice(index, 1);
+          rodadasList[index] = e;
+        } else {
+          rodadasList.push(e)
+        }
+      })
+
+      ret = rodadasList;
+    }
+    if (status) ret = ret.filter(e => e.Status == status)
+    setList(ret)
   }
 
 
@@ -50,9 +64,9 @@ export default function App() {
   }
 
   useEffect(() => {
+
     fetchData();
   }, [])
-
   return (
     <>
       <StatusBar style="inverted" />
@@ -64,54 +78,77 @@ export default function App() {
           {
             list?.length > 0 &&
             <FlatList data={list} keyExtractor={item => `${item.Territorio}_${item.Rodadas}`} renderItem={(e) => {
-              if (!e.item.Dirigente) return;
+              //if (!e.item.Dirigente) return;
 
               const car = <Card style={{ margin: 15, backgroundColor: "#FFF" }}>
                 <Card.Content>
-                  <Title>
-                    <Text style={{ ...styles.h2, color: "#5b3e84" }}>Território: {e.item.Territorio}</Text>
-                    {e.item.Rodadas > 0 && <Text style={{ fontSize: 10 }}> Rodada: {e.item.Rodadas} </Text>}
-                  </Title>
-                  <Paragraph>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: "center" }}>
+                    <View>
+                      <Text style={{ ...styles.h2, color: "#5b3e84" }}>{e.item.Territorio}
+                      </Text>
+                    </View>
+                    {
+                      menuSelect != "Historico" &&
+                      <>
+                        <IconMaterialCommunityIcons size={18} name="newspaper-variant-multiple-outline" backgroundColor="#5b3e84" > {e.item.Folhas}</IconMaterialCommunityIcons>
+                        <IconMaterialCommunityIcons size={18} name="home-group" backgroundColor="#5b3e84" > {e.item.NumCasas}</IconMaterialCommunityIcons>
+                      </>
+                    }
+                    <View>
+                      {e.item.Rodadas > 0 &&
+                        <Text style={styles.badge}> RODADA: {e.item.Rodadas} </Text>}
+                    </View>
+                  </View>
+                  {e.item.DiaSemana && <Paragraph>
                     Dia da semana: {e.item.DiaSemana}
-                  </Paragraph>
-                  <Paragraph>
+                  </Paragraph>}
+
+                  {e.item.Dirigente && <Paragraph>
                     Dirigente: {e.item.Dirigente}
-                  </Paragraph>
+                  </Paragraph>}
+
+                  {e.item.Grupo &&
+                    <Paragraph>
+                      Grupo: {e.item.Grupo}
+                    </Paragraph>
+                  }
+
                   <Paragraph>
-                    Grupo: {e.item.Grupo}
+                    1ª Saída: {e.item.Saida_1 ? formatDate(e.item.Saida_1) : "Não houve"}  2ª Saída: {e.item.Saida_2 ? formatDate(e.item.Saida_2) : "Não houve"}
                   </Paragraph>
-                  <Paragraph>
-                    1ª Saída: {formatDate(e.item.Saida_1)}  2ª Saída: {e.item.Saida_2 ? formatDate(e.item.Saida_2) : "Não houve"}
-                  </Paragraph>
-                  <Paragraph>
+                  {e.item.Devolucao && <Paragraph>
                     Devolução: {formatDate(e.item.Devolucao)}
                   </Paragraph>
-                  <Paragraph>Status:  <Text style={{ fontWeight: "bold" }}>{e.item.Status}</Text></Paragraph>
+                  }
+                  {menuSelect != "Historico" && <Paragraph>Status: <Text style={{ fontWeight: "bold" }}>{e.item.Status}</Text></Paragraph>}
+
                 </Card.Content>
-                <Card.Cover style={{
+                {menuSelect != "Historico" && <><Card.Cover style={{
                   ...styles.shadow,
                   height: 240,
                   margin: 15,
                   borderRadius: 10,
                   backgroundColor: '#fff',
                 }} source={{ uri: 'https://controle-territorio.herokuapp.com/getTerritory/' + e.item.Territorio }} />
-
-                <Card.Actions style={{ display: "flex", alignSelf: 'center' }}>
-                  <View>
-                    <IconMaterialCommunityIcons.Button name="marker-cancel" backgroundColor="#e63746" >Cancelar </IconMaterialCommunityIcons.Button>
-                  </View>
-                  {e.item.Status != "OK" &&
-                    <View>
-                      <Icon.Button name="calendar" backgroundColor="#5b3e84" >Alterar dia </Icon.Button>
+                  <Card.Actions style={{ display: "flex", alignSelf: 'center' }}>
+                    {e.item.Saida_1 && <View>
+                      <IconMaterialCommunityIcons.Button name="marker-cancel" backgroundColor="#e63746" >Cancelar </IconMaterialCommunityIcons.Button>
                     </View>}
-                  {e.item.Status != "OK" &&
-                    <View>
-                      <Icon.Button name="check" backgroundColor="#46ad40" >Trabalhado </Icon.Button>
-                    </View>
-                  }
+                    {e.item.Status != "OK" &&
+                      <View>
+                        <Icon.Button name="calendar" backgroundColor="#5b3e84" >Alterar dia </Icon.Button>
+                      </View>}
+                    {e.item.Status != "OK" &&
+                      <View>
+                        <Icon.Button name="check" backgroundColor="#46ad40" >Trabalhado </Icon.Button>
+                      </View>
+                    }
 
-                </Card.Actions>
+                  </Card.Actions>
+                </>
+                }
+
+
 
               </Card>
 
@@ -124,26 +161,31 @@ export default function App() {
         </View>
       </View>
       <View style={{ ...styles.fixToText }}>
-        <TouchableOpacity onPress={() => fetchData("ABERTO")}>
-          <View style={{ ...styles.button, opacity: (menuSelect == "Abertos" ? 0.5 : 1) }}>
-            <IconMaterialCommunityIcons style={{ textAlign: "center" }} size={20} color="#A693C1" name="human-male-male"></IconMaterialCommunityIcons>
+        <TouchableNativeFeedback delayPressIn={0} background={TouchableNativeFeedback.Ripple('#000000', true, 50)} onPress={() => fetchData("ABERTO")}>
+          <View style={{ ...styles.button, opacity: (menuSelect != "Abertos" ? bottomMenuOpacity : 1) }}>
+            <IconMaterialCommunityIcons style={{ textAlign: "center" }} size={20} color={(menuSelect != "Abertos" ? "#FFF" : "#A693C1")} name="human-male-male"></IconMaterialCommunityIcons>
             <Text style={{ ...styles.buttonText }}>Abertos</Text>
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => fetchData()}>
-          <View style={{ ...styles.button, opacity: (menuSelect == "Todos" ? 0.5 : 1) }}>
-            <IconMaterialCommunityIcons size={20} style={{ textAlign: "center" }} color="#A693C1" name="tray-full"></IconMaterialCommunityIcons>
+        </TouchableNativeFeedback>
+        <TouchableNativeFeedback delayPressIn={0} background={TouchableNativeFeedback.Ripple('#000000', true, 50)} onPress={() => fetchData()}>
+          <View style={{ ...styles.button, opacity: (menuSelect != "Todos" ? bottomMenuOpacity : 1) }}>
+            <IconMaterialCommunityIcons size={20} style={{ textAlign: "center" }}
+              color={(menuSelect != "Todos" ? "#FFF" : "#A693C1")} name="tray-full"></IconMaterialCommunityIcons>
             <Text style={{ ...styles.buttonText }}>Todos</Text>
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => fetchData("OK")}>
-          <View style={{ ...styles.button, opacity: (menuSelect == "Entregues" ? 0.5 : 1) }}>
-            <Icon style={{ textAlign: "center" }} size={20} color="#A693C1" name="calendar-check-o"></Icon>
+        </TouchableNativeFeedback>
+        <TouchableNativeFeedback delayPressIn={0} background={TouchableNativeFeedback.Ripple('#000000', true, 50)} onPress={() => fetchData("OK")}>
+          <View style={{ ...styles.button, opacity: (menuSelect != "Entregues" ? bottomMenuOpacity : 1) }}>
+            <Icon style={{ textAlign: "center" }} size={20} color={(menuSelect != "Entregues" ? "#FFF" : "#A693C1")} name="calendar-check-o"></Icon>
             <Text style={{ ...styles.buttonText }}>Entregues</Text>
           </View>
-        </TouchableOpacity>
-
-
+        </TouchableNativeFeedback>
+        <TouchableNativeFeedback delayPressIn={0} background={TouchableNativeFeedback.Ripple('#000000', true, 50)} onPress={() => fetchData("Historico")}>
+          <View style={{ ...styles.button, opacity: (menuSelect != "Historico" ? bottomMenuOpacity : 1) }}>
+            <Icon style={{ textAlign: "center" }} size={20} color={(menuSelect != "Historico" ? "#FFF" : "#A693C1")} name="history"></Icon>
+            <Text style={{ ...styles.buttonText }}>Histórico</Text>
+          </View>
+        </TouchableNativeFeedback>
       </View >
     </>
   );

@@ -29,6 +29,14 @@ export const styles = StyleSheet.create({
         fontSize: 12,
         padding: 9
     },
+    badge: {
+        fontSize: 10,
+        backgroundColor: "orange",
+        borderRadius: 10,
+        padding: 4,
+        color: "white",
+        fontWeight: "bold"
+    },
     fixToText: {
         flexDirection: 'row',
         justifyContent: 'space-between',
