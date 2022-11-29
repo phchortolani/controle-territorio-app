@@ -15,7 +15,7 @@ export default function App() {
 
   async function fetchData(status) {
     if (tempList.length == 0) {
-      await fetch('https://controle-territorio.herokuapp.com/', {
+      await fetch('https://controle-territorio.onrender.com/', {
         method: 'GET',
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
@@ -80,7 +80,11 @@ export default function App() {
             <FlatList data={list} keyExtractor={item => `${item.Territorio}_${item.Rodadas}`} renderItem={(e) => {
               //if (!e.item.Dirigente) return;
 
-              const car = <Card style={{ margin: 15, backgroundColor: "#FFF" }}>
+              const defaultCard = { margin: 15, backgroundColor: "#FFF" }
+              const cardNoPaper = { ...defaultCard, borderColor: "red", borderWidth: 2 }
+
+
+              const car = <Card style={(e.item.OBS.length > 0 ? cardNoPaper : defaultCard)}>
                 <Card.Content>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: "center" }}>
                     <View>
@@ -95,8 +99,18 @@ export default function App() {
                       </>
                     }
                     <View>
-                      {e.item.Rodadas > 0 &&
-                        <Text style={styles.badge}> RODADA: {e.item.Rodadas} </Text>}
+                      {
+                        e.item.Rodadas > 0 &&
+                        <>
+                          <Text style={styles.badge}> RODADA: {e.item.Rodadas} </Text>
+
+                        </>
+                      }
+
+                      {
+                        e.item.OBS.length > 0 &&
+                        <Text style={{ ...styles.badge, marginVertical: 2, backgroundColor: "red", textAlign: 'center' }}> {e.item.OBS} </Text>
+                      }
                     </View>
                   </View>
                   {e.item.DiaSemana && <Paragraph>
@@ -123,29 +137,33 @@ export default function App() {
                   {menuSelect != "Historico" && <Paragraph>Status: <Text style={{ fontWeight: "bold" }}>{e.item.Status}</Text></Paragraph>}
 
                 </Card.Content>
-                {menuSelect != "Historico" && <><Card.Cover style={{
-                  ...styles.shadow,
-                  height: 240,
-                  margin: 15,
-                  borderRadius: 10,
-                  backgroundColor: '#fff',
-                }} source={{ uri: 'https://controle-territorio.herokuapp.com/getTerritory/' + e.item.Territorio }} />
-                  <Card.Actions style={{ display: "flex", alignSelf: 'center' }}>
-                    {e.item.Saida_1 && <View>
-                      <IconMaterialCommunityIcons.Button name="marker-cancel" backgroundColor="#e63746" >Cancelar </IconMaterialCommunityIcons.Button>
-                    </View>}
-                    {e.item.Status != "OK" &&
-                      <View>
-                        <Icon.Button name="calendar" backgroundColor="#5b3e84" >Alterar dia </Icon.Button>
-                      </View>}
-                    {e.item.Status != "OK" &&
-                      <View>
-                        <Icon.Button name="check" backgroundColor="#46ad40" >Trabalhado </Icon.Button>
-                      </View>
-                    }
+                {
+                  menuSelect != "Historico" &&
+                  <>
+                    <Card.Cover style={{
+                      ...styles.shadow,
+                      height: 240,
+                      margin: 15,
+                      borderRadius: 10,
+                      backgroundColor: '#fff',
+                    }} source={{ uri: 'https://controle-territorio.herokuapp.com/getTerritory/' + e.item.Territorio }} />
 
-                  </Card.Actions>
-                </>
+                    <Card.Actions style={{ display: "flex", alignSelf: 'center' }}>
+                      {e.item.Saida_1 && <View>
+                        <IconMaterialCommunityIcons.Button name="marker-cancel" backgroundColor="#e63746" >Cancelar </IconMaterialCommunityIcons.Button>
+                      </View>}
+                      {e.item.Status != "OK" &&
+                        <View>
+                          <Icon.Button name="calendar" backgroundColor="#5b3e84" >Alterar dia </Icon.Button>
+                        </View>}
+                      {e.item.Status != "OK" &&
+                        <View>
+                          <Icon.Button name="check" backgroundColor="#46ad40" >Trabalhado </Icon.Button>
+                        </View>
+                      }
+
+                    </Card.Actions>
+                  </>
                 }
 
 

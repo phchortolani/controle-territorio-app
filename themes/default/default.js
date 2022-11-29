@@ -35,7 +35,8 @@ export const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 4,
         color: "white",
-        fontWeight: "bold"
+        fontWeight: "bold",
+        textAlign: 'center'
     },
     fixToText: {
         flexDirection: 'row',
